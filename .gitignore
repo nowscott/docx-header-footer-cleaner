@@ -1,0 +1,7 @@
+docx_backup/
+docx_config.local.txt
+__pycache__/
+*.pyc
+.DS_Store
+.idea/
+.vscode/
