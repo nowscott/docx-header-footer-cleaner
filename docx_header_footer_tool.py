@@ -112,7 +112,7 @@ def process_roots(roots, backup_root):
     errors = []
     skipped = []
     for root in roots:
-        for dirpath, dirnames, filenames in os.walk(root):
+        for dirpath, _, filenames in os.walk(root):
             for fn in filenames:
                 lower = fn.lower()
                 full = os.path.join(dirpath, fn)
