@@ -5,6 +5,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 import os
 import shutil
 import tempfile
+import zipfile
 
 def clear_hf(hf):
     el = hf._element
@@ -116,7 +117,13 @@ def process_roots(roots, backup_root):
             for fn in filenames:
                 lower = fn.lower()
                 full = os.path.join(dirpath, fn)
+                if fn.startswith('.') or fn.startswith('~$'):
+                    skipped.append(full)
+                    continue
                 if lower.endswith('.docx'):
+                    if not zipfile.is_zipfile(full):
+                        skipped.append(full)
+                        continue
                     try:
                         backup_file(full, root, backup_root)
                         process_in_place(full)
@@ -150,7 +157,10 @@ def main():
         print('SUMMARY')
         print('Processed .docx:', len(processed))
         print('Errors:', len(errors))
-        print('Skipped .doc (convert to .docx first):', len(skipped))
+        docx_skipped = [p for p in skipped if p.lower().endswith('.docx')]
+        doc_skipped = [p for p in skipped if p.lower().endswith('.doc')]
+        print('Skipped invalid .docx:', len(docx_skipped))
+        print('Skipped .doc (convert to .docx first):', len(doc_skipped))
         if processed:
             print('\nDETAILS (first 30):')
             for i, p in enumerate(processed[:30], 1):
@@ -159,9 +169,13 @@ def main():
             print('\nERRORS (first 20):')
             for i, (inp, err) in enumerate(errors[:20], 1):
                 print(f'{i:02d}.', inp, '\n   ', err)
-        if skipped:
+        if docx_skipped:
+            print('\nSKIPPED invalid .docx (first 20):')
+            for i, p in enumerate(docx_skipped[:20], 1):
+                print(f'{i:02d}.', p)
+        if doc_skipped:
             print('\nSKIPPED .doc (first 20):')
-            for i, p in enumerate(skipped[:20], 1):
+            for i, p in enumerate(doc_skipped[:20], 1):
                 print(f'{i:02d}.', p)
         return
     if not args.input:
